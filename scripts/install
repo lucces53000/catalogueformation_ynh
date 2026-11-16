@@ -1,0 +1,16 @@
+#!/bin/bash
+source "$(dirname "$0")/_common.sh"
+
+ynh_script_progression --message="Installation des sources du catalogue..."
+if [ -n "${path%/}" ]; then
+    ynh_die "Choisissez un domaine dédié à la racine / afin de conserver les URL absolues de l'application."
+fi
+configure_package
+ynh_script_progression --message="Initialisation de la base Yunohost..."
+if [ ! -f "$data_dir/firestore.json" ]; then
+    printf '{"formatVersion":1,"documents":[]}\n' > "$data_dir/firestore.json"
+    chown "$app:$app" "$data_dir/firestore.json"
+    chmod 600 "$data_dir/firestore.json"
+fi
+ynh_script_progression --message="Démarrage du catalogue..."
+ynh_systemctl --service="$app" --action=start --log_path="systemd" --wait_until="API Yunohost disponible" --timeout=60

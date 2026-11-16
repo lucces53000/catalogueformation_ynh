@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Calendrier mensuel des occupations des agents">
+    <title>Calendrier des agents</title>
+    <meta name="theme-color" content="#183b68">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./agent-calendar.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="admin-brand">
+        <img class="admin-logo" src="./logo.png" alt="">
+        <h1>Calendrier des agents</h1>
+      </div>
+    </header>
+    <main>
+      <nav class="agent-calendar-navigation" aria-label="Navigation">
+        <a class="button secondary" href="./admin.html">Retour à l’administration</a>
+        <button id="agent-sign-out" class="button danger hidden" type="button">Se déconnecter</button>
+      </nav>
+
+      <section id="agent-login-panel" class="panel login-panel">
+        <h2>Connexion administrateur</h2>
+        <form id="agent-login-form" class="stack">
+          <label for="agent-login-email">Adresse e-mail</label>
+          <input id="agent-login-email" name="email" type="email" autocomplete="username" required>
+          <label for="agent-login-password">Mot de passe</label>
+          <input id="agent-login-password" name="password" type="password" autocomplete="current-password" required>
+          <button class="button primary" type="submit">Se connecter</button>
+        </form>
+      </section>
+
+      <section id="agent-access-denied" class="panel agent-calendar-notice hidden">
+        <h2>Accès réservé</h2>
+        <p>Cette page est réservée à l’administrateur autorisé.</p>
+      </section>
+
+      <section id="agent-calendar-panel" class="hidden">
+        <nav class="tabs agent-calendar-tabs" role="tablist" aria-label="Sections du calendrier des agents">
+          <button class="tab" id="agent-management-tab" type="button" role="tab" aria-controls="agent-management-view" aria-selected="false" data-agent-tab="management">Gestion des agents</button>
+          <button class="tab active" id="agent-calendar-tab" type="button" role="tab" aria-controls="agent-calendar-view" aria-selected="true" data-agent-tab="calendar">Calendrier</button>
+          <button class="tab" id="agent-statistics-tab" type="button" role="tab" aria-controls="agent-statistics-view" aria-selected="false" data-agent-tab="statistics">Statistiques</button>
+        </nav>
+
+        <section id="agent-management-view" class="panel agent-management hidden" role="tabpanel" aria-labelledby="agent-management-tab">
+          <div class="section-heading">
+            <div>
+              <h2>Agents</h2>
+              <p>Les liens ICS sont privés et ne sont utilisés que pour charger le calendrier.</p>
+            </div>
+            <button id="open-agent-create" class="button primary agent-create-button" type="button">
+              <span aria-hidden="true">+</span>
+              Ajouter un agent
+            </button>
+          </div>
+          <div id="agent-list" class="agent-trainer-columns" aria-live="polite"></div>
+        </section>
+
+        <dialog id="agent-form-dialog" class="agent-form-dialog" aria-labelledby="agent-form-title">
+          <div class="agent-dialog-heading">
+            <h2 id="agent-form-title">Ajouter un agent</h2>
+            <button id="close-agent-dialog" class="agent-icon-button" type="button" aria-label="Fermer" title="Fermer">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <form id="agent-form" class="agent-form">
+            <div class="field">
+              <label for="agent-first-name">Prénom</label>
+              <input id="agent-first-name" name="firstName" type="text" maxlength="100" autocomplete="given-name" required>
+            </div>
+            <div class="field">
+              <label for="agent-last-name">Nom</label>
+              <input id="agent-last-name" name="lastName" type="text" maxlength="100" autocomplete="family-name" required>
+            </div>
+            <div class="field">
+              <label for="agent-status">Statut</label>
+              <select id="agent-status" name="status" required>
+                <option value="SPP">SPP</option>
+                <option value="SPV">SPV</option>
+              </select>
+            </div>
+            <div class="field agent-toggle-field">
+              <span>Formateur caisson</span>
+              <label class="agent-toggle">
+                <input name="formateurCaisson" type="checkbox" role="switch" aria-label="Formateur caisson">
+                <span class="agent-toggle-track" aria-hidden="true"></span>
+                <span class="agent-toggle-state" aria-hidden="true"></span>
+              </label>
+            </div>
+            <div class="field agent-url-field">
+              <label for="agent-ics-url">Lien du calendrier ICS</label>
+              <input id="agent-ics-url" name="icsUrl" type="url" maxlength="2048" placeholder="https://agatt.sdis53.fr/calendrier/…/occupation.ics" required>
+            </div>
+            <div class="agent-form-actions">
+              <button id="save-agent" class="button primary" type="submit">Ajouter l’agent</button>
+              <button id="cancel-agent-edit" class="button secondary" type="button">Annuler</button>
+            </div>
+          </form>
+        </dialog>
+
+        <section id="agent-calendar-view" class="panel agent-month-calendar" role="tabpanel" aria-labelledby="agent-calendar-tab">
+          <div class="section-heading">
+            <div>
+              <h2 id="monthly-calendar-title">Occupations des agents</h2>
+              <p id="agent-calendar-summary">Chargement des calendriers…</p>
+            </div>
+            <button id="refresh-agent-calendars" class="button secondary" type="button">Actualiser les flux ICS</button>
+          </div>
+          <div class="agent-month-controls" role="group" aria-label="Navigation mensuelle">
+            <button id="agent-month-previous" class="button secondary" type="button" aria-label="Mois précédent">‹</button>
+            <h3 id="agent-calendar-month"></h3>
+            <button id="agent-month-next" class="button secondary" type="button" aria-label="Mois suivant">›</button>
+            <button id="agent-month-today" class="button secondary" type="button">Ce mois-ci</button>
+            <div class="agent-occupation-filter">
+              <label for="agent-occupation-filter">Type d’occupation</label>
+              <select id="agent-occupation-filter">
+                <option value="all">Toutes</option>
+                <option value="incendie">Incendie</option>
+                <option value="caisson">Caisson</option>
+              </select>
+            </div>
+          </div>
+          <div class="agent-calendar-legend" aria-label="Légende des couleurs">
+            <span><i class="agent-event-dot incendie" aria-hidden="true"></i> Incendie</span>
+            <span><i class="agent-event-dot caisson" aria-hidden="true"></i> Caisson</span>
+            <span><i class="agent-event-dot assistant" aria-hidden="true"></i> Assistant INC / COD</span>
+            <span><i class="agent-event-dot training-session" aria-hidden="true"></i> Formation incendie</span>
+            <span><i class="agent-event-dot confirmed" aria-hidden="true"></i> Validé</span>
+            <span><i class="agent-event-dot tentative" aria-hidden="true"></i> Disponible</span>
+          </div>
+          <div id="agent-month-calendar" class="agent-month-calendar-grid"></div>
+        </section>
+
+        <section id="agent-statistics-view" class="panel agent-statistics" role="tabpanel" aria-labelledby="agent-statistics-tab" hidden>
+          <div class="section-heading">
+            <div>
+              <h2>Statistiques annuelles</h2>
+              <p id="agent-statistics-help">Nombre d’occupations et durées selon leurs horaires AGATT.</p>
+            </div>
+          </div>
+          <div class="agent-statistics-year-controls" role="group" aria-label="Année des statistiques">
+            <button id="agent-statistics-previous-year" class="button secondary" type="button" aria-label="Année précédente">‹</button>
+            <label for="agent-statistics-year">Année</label>
+            <input id="agent-statistics-year" type="number" min="2000" max="2100" step="1">
+            <button id="agent-statistics-next-year" class="button secondary" type="button" aria-label="Année suivante">›</button>
+          </div>
+          <div id="agent-statistics-list" class="agent-statistics-list"></div>
+        </section>
+      </section>
+      <p id="agent-calendar-status" class="status" role="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="./agent-calendar.js"></script>
+    <script type="module" src="./pwa-update.js"></script>
+  </body>
+</html>

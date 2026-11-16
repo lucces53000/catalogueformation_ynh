@@ -1,0 +1,14 @@
+{
+  "name": "catalogueformation-ynh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend local pour le catalogue de formation Yunohost",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "check": "node --check server/index.js && node --check server/store.js && node --check server/fcm.js && node --check server/import-firestore.js && node --check tests/import-firestore.test.js && node --check tests/backend.test.js && node --check tests/fcm.test.js",
+    "test": "node --test tests/*.test.js"
+  }
+}
