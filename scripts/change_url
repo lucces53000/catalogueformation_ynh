@@ -1,0 +1,11 @@
+#!/bin/bash
+source "$(dirname "$0")/_common.sh"
+if [ -n "${new_path%/}" ]; then
+    ynh_die "L'application Formation doit rester installée à la racine / d'un domaine dédié."
+fi
+domain="$new_domain"
+path="$new_path"
+ynh_app_setting_set --key=domain --value="$domain"
+ynh_app_setting_set --key=path --value="$path"
+refresh_package_config
+yunohost service reload "$app"

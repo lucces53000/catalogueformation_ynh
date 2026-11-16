@@ -1,0 +1,26 @@
+[Unit]
+Description=Catalogue de formation SDIS 53
+After=network.target
+
+[Service]
+Type=simple
+User=__APP__
+Group=__APP__
+WorkingDirectory=__INSTALL_DIR__
+Environment=NODE_ENV=production
+Environment=PORT=__PORT__
+Environment=DATA_DIR=__DATA_DIR__
+Environment=APP_ROOT=__INSTALL_DIR__/src
+Environment="PATH=__PATH_WITH_NODEJS__"
+Environment="FCM_SERVICE_ACCOUNT_FILE=__FCM_SERVICE_ACCOUNT_FILE__"
+ExecStart=__NODEJS_DIR__/node server/index.js
+Restart=on-failure
+RestartSec=5s
+UMask=0027
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ReadWritePaths=__DATA_DIR__
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr" class="maintenance-checking">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Calendrier récapitulatif des formations programmées du SDIS 53">
+    <meta name="theme-color" content="#183b68">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Formations SDIS 53">
+    <title>Calendrier des formations · SDIS 53</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="./public.css">
+  </head>
+  <body class="calendar-page">
+    <section id="public-maintenance-notice" class="public-maintenance-notice" role="status" aria-live="polite">
+      <div>
+        <p class="section-kicker">Programme SDIS 53</p>
+        <h1 id="public-maintenance-title">Vérification de la disponibilité</h1>
+        <p id="public-maintenance-message">Veuillez patienter quelques instants.</p>
+        <a class="maintenance-admin-link" href="./admin.html">Accéder à l’administration</a>
+      </div>
+    </section>
+    <header class="site-banner" data-public-content>
+      <div class="container site-banner-content d-flex justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <img class="site-logo" src="./logo.png" alt="">
+          <h1 class="h2 mb-0">Calendrier des formations</h1>
+        </div>
+        <a class="btn btn-outline-primary btn-sm fw-semibold" href="./index.html">Catalogue</a>
+      </div>
+    </header>
+
+    <main class="container public-main py-4 py-lg-5" data-public-content>
+      <section id="training-calendar" aria-labelledby="calendar-title">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+          <div>
+            <p class="section-kicker mb-1">Programme SDIS 53</p>
+            <h2 class="h3 mb-1" id="calendar-title">Formations programmées</h2>
+            <p class="text-secondary mb-0">Sélectionnez une session pour ouvrir la fiche détaillée de la formation.</p>
+          </div>
+          <div class="calendar-controls d-flex flex-wrap align-items-center gap-2" role="group" aria-label="Navigation dans le calendrier">
+            <button id="calendar-previous" class="btn btn-outline-primary" type="button" aria-label="Mois précédent" title="Mois précédent">‹</button>
+            <label class="visually-hidden" for="calendar-month-picker">Choisir un mois</label>
+            <input id="calendar-month-picker" class="form-control calendar-month-picker" type="month" aria-label="Choisir un mois">
+            <button id="calendar-next" class="btn btn-outline-primary" type="button" aria-label="Mois suivant" title="Mois suivant">›</button>
+            <button id="calendar-today" class="btn btn-outline-primary" type="button">Aujourd’hui</button>
+          </div>
+        </div>
+
+        <div class="calendar-month-heading">
+          <h3 id="calendar-month-title" class="h4 text-capitalize mb-0" aria-live="polite"></h3>
+          <span id="calendar-session-count" class="badge rounded-pill text-bg-light"></span>
+        </div>
+
+        <div id="calendar-grid-view" class="calendar-grid-view" aria-label="Calendrier mensuel">
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>Lun.</span><span>Mar.</span><span>Mer.</span><span>Jeu.</span><span>Ven.</span><span>Sam.</span><span>Dim.</span>
+          </div>
+          <div id="calendar-month-grid" class="calendar-month-grid"></div>
+        </div>
+        <div id="calendar-agenda" class="calendar-agenda" aria-label="Sessions du mois"></div>
+      </section>
+
+      <p id="page-status" class="mt-4 mb-0" role="status" aria-live="polite">Chargement des formations…</p>
+    </main>
+
+    <dialog id="training-modal" class="training-modal" aria-labelledby="training-modal-title" data-public-content>
+      <div class="training-modal-panel">
+        <div class="training-modal-header">
+          <div>
+            <p id="training-modal-category" class="section-kicker mb-1"></p>
+            <h2 id="training-modal-title" class="h3 mb-0"></h2>
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+              <span id="training-modal-subcategory" class="badge rounded-pill subcategory-badge" hidden></span>
+              <span id="training-modal-duration" class="badge rounded-pill training-duration-badge" hidden></span>
+              <span id="training-modal-sessions" class="badge rounded-pill training-sessions-badge" hidden></span>
+            </div>
+          </div>
+          <button id="close-training-modal" class="btn-close" type="button" aria-label="Fermer"></button>
+        </div>
+        <div id="training-modal-content" class="training-modal-content"></div>
+      </div>
+    </dialog>
+
+    <footer class="border-top py-4" data-public-content>
+      <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3 text-secondary small">
+        <a class="btn btn-outline-primary btn-sm fw-semibold" href="./index.html">Retour au catalogue</a>
+        <a class="btn btn-outline-primary btn-sm fw-semibold" href="./admin.html">Administration</a>
+        <span>SDIS 53 · Calendrier des formations</span>
+      </div>
+    </footer>
+
+    <script type="module" src="./public.js"></script>
+    <script type="module" src="./calendar.js"></script>
+    <script type="module" src="./public-maintenance.js"></script>
+    <script type="module" src="./pwa-update.js"></script>
+  </body>
+</html>

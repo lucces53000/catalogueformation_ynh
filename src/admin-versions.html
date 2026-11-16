@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Gestion des versions et des relectures du catalogue">
+    <title>Versions et relecture · Administration SDIS 53</title>
+    <meta name="theme-color" content="#183b68">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./catalog-versions.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="admin-brand">
+        <img class="admin-logo" src="./logo.png" alt="">
+        <h1>Versions et relecture</h1>
+      </div>
+    </header>
+    <main class="catalog-versions-main">
+      <section id="login-panel" class="panel login-panel">
+        <h2>Connexion administrateur</h2>
+        <p>Cette page est réservée aux comptes administrateur autorisés.</p>
+        <form id="login-form" class="stack">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" name="email" type="email" autocomplete="username" required>
+          <label for="password">Mot de passe</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button class="button primary" type="submit">Se connecter</button>
+        </form>
+      </section>
+
+      <section id="versions-panel" class="hidden">
+        <div class="admin-account-bar">
+          <p id="signed-in-as" class="signed-in-as"></p>
+          <div class="admin-account-actions">
+            <a class="button secondary" href="./admin.html">Retour à l’administration</a>
+            <button id="sign-out" class="button danger" type="button">Se déconnecter</button>
+          </div>
+        </div>
+        <section id="verification-notice" class="verification-notice hidden">
+          <div>
+            <h2>Vérifiez votre adresse e-mail</h2>
+            <p>Ouvrez le lien reçu par e-mail, puis reconnectez-vous pour accéder à cette page.</p>
+          </div>
+          <button id="resend-verification" class="button secondary" type="button">Renvoyer le courriel</button>
+        </section>
+
+        <section id="versions-workspace" class="catalog-versions-workspace hidden">
+          <header class="catalog-versions-intro">
+            <p class="section-kicker">Gestion du catalogue</p>
+            <h2>Créer une version à relire</h2>
+            <p>Créez une copie isolée pour préparer le prochain catalogue. Les modifications de cette copie ne touchent pas au catalogue public avant sa publication.</p>
+          </header>
+          <form id="create-version-form" class="catalog-version-create-form">
+            <div class="field">
+              <label for="version-year">Année du catalogue</label>
+              <input id="version-year" name="year" type="number" min="2000" max="2200" required>
+            </div>
+            <div class="field">
+              <label for="version-title">Nom de la version</label>
+              <input id="version-title" name="title" type="text" maxlength="100" required>
+            </div>
+            <div class="field">
+              <label for="initial-reviewer-name">Nom du premier relecteur</label>
+              <input id="initial-reviewer-name" name="reviewerName" type="text" maxlength="100" required>
+              <small>Ce nom attribue les commentaires mais n’est pas vérifié.</small>
+            </div>
+            <button id="create-version-button" class="button primary" type="submit">Créer une copie de relecture</button>
+          </form>
+          <section id="review-link-result" class="review-link-result" role="status" aria-live="polite" hidden></section>
+          <p id="versions-status" class="status" role="status" aria-live="polite"></p>
+
+          <section class="catalog-version-list-section" aria-labelledby="versions-list-title">
+            <div class="section-heading">
+              <div>
+                <h2 id="versions-list-title">Versions de relecture</h2>
+                <p>Gérez les relecteurs, consultez leurs commentaires et décidez vous-même de la publication.</p>
+                <p id="live-update-status" class="live-update-status" role="status" aria-live="polite">Mises à jour en direct en attente…</p>
+              </div>
+              <button id="refresh-versions" class="button secondary" type="button">Actualiser</button>
+            </div>
+            <label class="version-search">
+              <span>Rechercher une version ou un relecteur</span>
+              <input id="version-filter" type="search" placeholder="Nom, année, statut ou relecteur">
+            </label>
+            <p id="version-results-summary" class="version-results-summary" aria-live="polite"></p>
+            <div id="review-versions-list" class="catalog-version-list"></div>
+          </section>
+
+          <section class="catalog-version-list-section" aria-labelledby="archives-title">
+            <h2 id="archives-title">Archives des catalogues remplacés</h2>
+            <p>Une publication archive le catalogue précédent pour permettre un retour arrière.</p>
+            <div id="catalog-archives-list" class="catalog-version-list"></div>
+          </section>
+        </section>
+        <p id="access-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+    <script type="module" src="./catalog-versions.js"></script>
+    <script type="module" src="./pwa-update.js"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+.firebase/local-emulator-data/
+firebase-debug.log
+firestore-debug.log
+functions-debug.log
+ui-debug.log

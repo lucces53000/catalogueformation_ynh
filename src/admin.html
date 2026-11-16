@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Administration des formations et annonces Firebase">
+    <title>Administration des formations</title>
+    <meta name="theme-color" content="#183b68">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Formations SDIS 53">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./catalog-versions.css">
+  </head>
+  <body>
+    <div class="admin-sticky-shell">
+      <header class="site-header">
+        <div class="admin-brand">
+          <img class="admin-logo" src="./logo.png" alt="">
+          <h1 id="admin-page-title">Administration des formations</h1>
+        </div>
+      </header>
+      <div id="admin-sticky-controls" class="admin-sticky-content hidden">
+        <div class="admin-account-bar">
+          <p id="signed-in-as" class="signed-in-as"></p>
+          <div class="admin-account-actions">
+            <a id="catalog-link" class="button secondary" href="./index.html">Voir le catalogue</a>
+            <a id="catalog-manager-link" class="button secondary" href="./admin-versions.html">Versions et relecture</a>
+            <a id="agent-calendar-link" class="button secondary hidden" href="./agent-calendar.html">Calendrier des agents</a>
+            <button id="sign-out" class="button danger hidden" type="button">Se déconnecter</button>
+          </div>
+        </div>
+        <section id="verification-notice" class="verification-notice hidden" aria-labelledby="verification-title">
+          <div>
+            <h2 id="verification-title">Vérifiez votre adresse e-mail</h2>
+            <p>Ouvrez le lien reçu par e-mail, puis déconnectez-vous et reconnectez-vous pour accéder à Firestore.</p>
+          </div>
+          <button id="resend-verification" class="button secondary" type="button">Renvoyer le courriel</button>
+        </section>
+        <div id="catalog-version-edit-banner" class="catalog-version-edit-banner" hidden>
+          <p data-version-title></p>
+          <a id="catalog-version-exit" class="button secondary" href="./admin-versions.html">Retour aux versions et relecture</a>
+        </div>
+        <nav class="tabs" aria-label="Sections de l’administration">
+          <button class="tab active" type="button" data-tab="trainings">Formations</button>
+          <button class="tab" type="button" data-tab="important-information">Dates à retenir</button>
+          <button class="tab" type="button" data-tab="venue-calendar">Calendrier</button>
+          <button class="tab" type="button" data-tab="communications">Annonces &amp; Notifications</button>
+          <button class="tab" type="button" data-tab="settings">Paramétrage</button>
+          <button class="tab" type="button" data-tab="venue-statistics">Statistiques</button>
+        </nav>
+      </div>
+    </div>
+
+    <main>
+      <section id="login-panel" class="panel login-panel">
+        <h2>Connexion administrateur</h2>
+        <p>Connectez-vous avec un compte autorisé à gérer les données.</p>
+        <form id="login-form" class="stack">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" name="email" type="email" autocomplete="username" required>
+          <label for="password">Mot de passe</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button class="button primary" type="submit">Se connecter</button>
+        </form>
+      </section>
+
+      <section id="admin-panel" class="hidden">
+        <section id="venue-calendar-view" class="collection-view hidden">
+          <div class="section-heading venue-calendar-heading">
+            <div>
+              <h2>Calendrier des lieux</h2>
+              <p>Consultez les formations programmées par lieu. Les sessions sans lieu restent visibles dans « Tous les lieux ».</p>
+            </div>
+            <div class="venue-calendar-filter">
+              <label for="venue-calendar-location">Lieu</label>
+              <select id="venue-calendar-location">
+                <option value="">Tous les lieux</option>
+              </select>
+            </div>
+          </div>
+          <div class="venue-calendar-controls" role="group" aria-label="Navigation dans le calendrier des lieux">
+            <button id="venue-calendar-previous" class="button secondary" type="button" aria-label="Mois précédent">‹</button>
+            <label class="visually-hidden" for="venue-calendar-month">Choisir un mois</label>
+            <input id="venue-calendar-month" type="month" aria-label="Choisir un mois">
+            <button id="venue-calendar-next" class="button secondary" type="button" aria-label="Mois suivant">›</button>
+            <button id="venue-calendar-today" class="button secondary" type="button">Aujourd’hui</button>
+          </div>
+          <div class="venue-calendar-month-heading">
+            <h3 id="venue-calendar-month-title"></h3>
+            <span id="venue-calendar-session-count"></span>
+          </div>
+          <div id="venue-calendar-grid-view" class="venue-calendar-grid-view" aria-label="Calendrier mensuel de l’occupation des lieux">
+            <div class="venue-calendar-weekdays" aria-hidden="true">
+              <span>Lun.</span><span>Mar.</span><span>Mer.</span><span>Jeu.</span><span>Ven.</span><span>Sam.</span><span>Dim.</span>
+            </div>
+            <div id="venue-calendar-grid" class="venue-calendar-grid"></div>
+          </div>
+          <div id="venue-calendar-agenda" class="venue-calendar-agenda" aria-label="Occupation des lieux du mois"></div>
+          <p id="venue-calendar-status" class="venue-calendar-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="trainings-view" class="collection-view">
+          <div class="section-heading">
+            <div>
+              <h2>Formations</h2>
+              <p>Glissez les poignées pour ordonner les formations ; utilisez les icônes pour les gérer.</p>
+            </div>
+            <button id="add-training" class="button primary icon-action" type="button" aria-label="Ajouter une formation" title="Ajouter une formation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div id="trainings-list" class="record-list"></div>
+        </section>
+
+        <section id="communications-view" class="collection-view hidden">
+          <section id="announcements-view">
+            <div class="section-heading">
+              <div>
+                <h2>Annonces</h2>
+                <p>Consultez et gérez les annonces avec les icônes.</p>
+              </div>
+              <button id="add-announcement" class="button primary icon-action" type="button" aria-label="Ajouter une annonce" title="Ajouter une annonce"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <div id="announcements-list" class="record-list"></div>
+          </section>
+
+          <section id="notifications-view">
+            <div class="section-heading">
+              <div>
+                <h2>Envoyer une notification</h2>
+                <p>Cette notification est envoyée aux appareils Android abonnés. Elle n’ajoute rien aux annonces du catalogue.</p>
+              </div>
+            </div>
+            <form id="notification-form" class="notification-form stack">
+              <div class="field">
+                <label for="notification-title">Titre</label>
+                <input id="notification-title" name="title" type="text" maxlength="500" required>
+              </div>
+              <div class="field">
+                <label for="notification-message">Texte</label>
+                <textarea id="notification-message" name="message" rows="5" maxlength="3000" required></textarea>
+              </div>
+              <p class="notification-help">L’écran indiquera si FCM accepte l’envoi. FCM ne fournit pas le nombre d’appareils effectivement notifiés. Aucun historique n’est conservé.</p>
+              <button id="send-notification" class="button primary" type="submit">Envoyer la notification</button>
+            </form>
+          </section>
+        </section>
+
+        <section id="settings-view" class="collection-view hidden">
+          <section class="directory-section maintenance-settings">
+            <div class="section-heading">
+              <div>
+                <h2>Maintenance du site public</h2>
+                <p>Masquez temporairement le catalogue et le calendrier publics sans bloquer l’administration.</p>
+              </div>
+            </div>
+            <div class="maintenance-settings-form">
+              <div class="maintenance-settings-control">
+                <span id="public-maintenance-label">Afficher le message « Mise à jour en cours » sur les pages publiques</span>
+                <button id="public-maintenance-enabled" class="maintenance-switch" type="button" role="switch" aria-checked="false" aria-labelledby="public-maintenance-label" disabled>
+                  <span class="maintenance-switch-thumb" aria-hidden="true"></span>
+                </button>
+              </div>
+              <p id="maintenance-settings-status" role="status" aria-live="polite"></p>
+            </div>
+          </section>
+
+          <section id="categories-view">
+            <div class="section-heading">
+              <div>
+                <h2>Catégories et sous-catégories</h2>
+                <p>Glissez les poignées pour ordonner les catégories et sous-catégories.</p>
+              </div>
+              <div class="taxonomy-toolbar">
+                <button id="add-category" class="button primary icon-action" type="button" aria-label="Créer une catégorie" title="Créer une catégorie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+            </div>
+            <div id="categories-list" class="category-list"></div>
+          </section>
+
+          <section id="directories-view">
+            <section class="directory-section">
+              <div class="section-heading">
+                <div>
+                  <h2>Lieux</h2>
+                  <p>Les lieux enregistrés sont proposés pour chaque session.</p>
+                </div>
+                <button id="add-location" class="button primary icon-action" type="button" aria-label="Ajouter un lieu" title="Ajouter un lieu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+              <div id="locations-list" class="directory-list"></div>
+            </section>
+            <section class="directory-section">
+              <div class="section-heading">
+                <div>
+                  <h2>Contacts</h2>
+                  <p>Le nom est obligatoire ; l’e-mail et le téléphone sont facultatifs.</p>
+                </div>
+                <button id="add-contact" class="button primary icon-action" type="button" aria-label="Ajouter un contact" title="Ajouter un contact"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+              <div id="contacts-list" class="directory-list"></div>
+            </section>
+          </section>
+        </section>
+
+        <section id="important-information-view" class="collection-view hidden">
+          <div class="section-heading">
+            <div>
+              <h2>Dates et informations à retenir</h2>
+              <p>Classez les dates, textes et rappels par catégorie. Les éléments masqués restent enregistrés.</p>
+            </div>
+            <button id="add-important-information" class="button primary icon-action" type="button" aria-label="Ajouter une information" title="Ajouter une information"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <section class="important-info-categories-panel">
+            <div class="section-heading">
+              <div>
+                <h3>Catégories d’informations</h3>
+                <p>Exemples : Sport, Formations JSP, Commissions.</p>
+              </div>
+              <button id="add-important-category" class="button secondary icon-action" type="button" aria-label="Ajouter une catégorie d’informations" title="Ajouter une catégorie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <div id="important-information-categories" class="important-info-category-list"></div>
+          </section>
+          <div id="important-information-admin-list" class="important-info-admin-list"></div>
+        </section>
+
+        <section id="venue-statistics-view" class="collection-view hidden">
+          <section class="venue-calendar-statistics" aria-labelledby="venue-calendar-statistics-title">
+            <div class="section-heading">
+              <div>
+                <h2 id="venue-calendar-statistics-title">Statistiques des programmations</h2>
+              </div>
+              <div class="field venue-statistics-year-field">
+                <label for="venue-statistics-year">Année</label>
+                <select id="venue-statistics-year">
+                  <option value="all">Toutes les années</option>
+                </select>
+              </div>
+            </div>
+            <div id="venue-calendar-statistics-summary" class="venue-calendar-statistics-summary"></div>
+            <div class="venue-calendar-statistics-tables">
+              <div>
+                <h3>Par domaine</h3>
+                <div class="venue-calendar-table-wrapper">
+                  <table class="venue-calendar-statistics-table">
+                    <thead>
+                      <tr><th>Domaine</th><th>Formations</th><th>Sessions</th><th>Jours cumulés</th></tr>
+                    </thead>
+                    <tbody id="venue-calendar-subcategory-statistics"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <h3>Utilisation par lieu</h3>
+                <div class="venue-calendar-table-wrapper">
+                  <table class="venue-calendar-statistics-table">
+                    <thead>
+                      <tr><th>Lieu</th><th>Jours d’utilisation</th></tr>
+                    </thead>
+                    <tbody id="venue-calendar-location-statistics"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </main>
+
+    <dialog id="record-dialog" class="record-dialog record-editor-dialog">
+      <form id="record-form" class="stack">
+        <div class="dialog-heading">
+          <h2 id="dialog-title"></h2>
+          <button id="close-dialog" class="icon-button" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div id="record-fields"></div>
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" id="cancel-dialog">Annuler</button>
+          <button class="button primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="maintenance-confirm-dialog" class="record-dialog compact-dialog" aria-labelledby="maintenance-confirm-title" aria-describedby="maintenance-confirm-message">
+      <div class="stack">
+        <div class="dialog-heading">
+          <h2 id="maintenance-confirm-title">Confirmer le changement</h2>
+        </div>
+        <p id="maintenance-confirm-message"></p>
+        <div class="dialog-actions">
+          <button id="cancel-maintenance-change" class="button secondary" type="button">Annuler</button>
+          <button id="confirm-maintenance-change" class="button primary" type="button">Confirmer</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="training-visibility-dialog" class="record-dialog compact-dialog" aria-labelledby="training-visibility-title" aria-describedby="training-visibility-message">
+      <div class="stack">
+        <div class="dialog-heading">
+          <h2 id="training-visibility-title">Confirmer le changement</h2>
+        </div>
+        <p id="training-visibility-message"></p>
+        <p id="training-visibility-error" class="status error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="cancel-training-visibility" class="button secondary" type="button">Annuler</button>
+          <button id="confirm-training-visibility" class="button primary" type="button">Confirmer</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="session-cancellation-dialog" class="record-dialog compact-dialog" aria-labelledby="session-cancellation-title" aria-describedby="session-cancellation-prompt">
+      <div class="stack">
+        <div class="dialog-heading">
+          <h2 id="session-cancellation-title">Annuler cette session ?</h2>
+        </div>
+        <p id="session-cancellation-prompt"></p>
+        <div id="session-cancellation-reason-field" class="field">
+          <label for="session-cancellation-reason">Motif de l’annulation</label>
+          <textarea id="session-cancellation-reason" rows="3" maxlength="1000" required></textarea>
+        </div>
+        <p id="session-cancellation-error" class="status error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="cancel-session-cancellation" class="button secondary" type="button">Retour</button>
+          <button id="confirm-session-cancellation" class="button danger" type="button">Confirmer l’annulation</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="category-dialog" class="record-dialog compact-dialog">
+      <form id="category-form" class="stack">
+        <div class="dialog-heading">
+          <h2 id="category-dialog-title">Créer une catégorie</h2>
+          <button id="close-category-dialog" class="icon-button" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div class="field">
+          <label id="category-name-label" for="category-name">Nom de la catégorie</label>
+          <input id="category-name" name="name" type="text" required>
+        </div>
+        <div id="category-color-field" class="field">
+          <label id="category-color-label">Couleur de la catégorie</label>
+          <div id="category-color-palette" class="category-color-palette" role="group" aria-label="Palette de couleurs"></div>
+          <div class="category-custom-color">
+            <label for="category-custom-color">Autre couleur</label>
+            <input id="category-custom-color" type="color" value="#205b98">
+            <button id="add-category-color" class="button secondary" type="button">Ajouter à la palette</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" id="cancel-category-dialog">Annuler</button>
+          <button id="save-category" class="button primary" type="submit">Créer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="directory-dialog" class="record-dialog compact-dialog">
+      <form id="directory-form" class="stack">
+        <div class="dialog-heading">
+          <h2 id="directory-dialog-title"></h2>
+          <button id="close-directory-dialog" class="icon-button" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div class="field">
+          <label id="directory-name-label" for="directory-name">Nom</label>
+          <input id="directory-name" name="name" type="text" required>
+        </div>
+        <div id="directory-contact-fields" class="hidden">
+          <div class="field">
+            <label for="directory-email">E-mail (facultatif)</label>
+            <input id="directory-email" name="email" type="email" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="directory-phone">Téléphone (facultatif)</label>
+            <input id="directory-phone" name="phone" type="tel" autocomplete="tel">
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" id="cancel-directory-dialog">Annuler</button>
+          <button class="button primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="important-category-dialog" class="record-dialog compact-dialog">
+      <form id="important-category-form" class="stack">
+        <div class="dialog-heading">
+          <h2 id="important-category-dialog-title">Ajouter une catégorie</h2>
+          <button id="close-important-category-dialog" class="icon-button" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div class="field">
+          <label for="important-category-name">Nom de la catégorie</label>
+          <input id="important-category-name" name="name" type="text" required maxlength="80">
+        </div>
+        <div class="field">
+          <label>Couleur de la catégorie</label>
+          <div id="important-category-color-palette" class="category-color-palette" role="group" aria-label="Palette de couleurs de catégorie"></div>
+          <div class="category-custom-color">
+            <label for="important-category-custom-color">Choisir une autre couleur</label>
+            <input id="important-category-custom-color" type="color" value="#205b98">
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" id="cancel-important-category-dialog">Annuler</button>
+          <button class="button primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="important-info-dialog" class="record-dialog">
+      <form id="important-info-form" class="stack">
+        <div class="dialog-heading">
+          <h2 id="important-info-dialog-title">Ajouter une information</h2>
+          <button id="close-important-info-dialog" class="icon-button" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div class="field">
+          <label for="important-info-category">Catégorie</label>
+          <select id="important-info-category" name="categoryId" required></select>
+        </div>
+        <div class="field">
+          <label for="important-info-title">Titre</label>
+          <input id="important-info-title" name="title" type="text" required maxlength="140">
+        </div>
+        <div class="field">
+          <label for="important-info-type">Type d’information</label>
+          <select id="important-info-type" name="type">
+            <option value="date">Dates / événement</option>
+            <option value="text">Texte informatif</option>
+            <option value="reminder">Rappel important</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="important-info-description">Détail ou consigne</label>
+          <textarea id="important-info-description" name="description" rows="4"></textarea>
+        </div>
+        <section class="important-info-dates-editor" aria-labelledby="important-info-dates-title">
+          <div class="section-heading">
+            <div>
+              <h3 id="important-info-dates-title">Dates et lieux</h3>
+              <p>Une ligne par date. Laissez la date vide pour afficher « À définir ».</p>
+            </div>
+            <button id="add-important-info-date" class="button secondary icon-action" type="button" aria-label="Ajouter une date" title="Ajouter une date"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div id="important-info-dates" class="important-info-dates-list"></div>
+        </section>
+        <div class="field">
+          <label for="important-info-recurrence">Récurrence ou précision de date (facultatif)</label>
+          <input id="important-info-recurrence" name="recurrence" type="text" maxlength="160" placeholder="Ex. Toutes les semaines paires">
+        </div>
+        <label class="checkbox-field">
+          <input id="important-info-published" name="published" type="checkbox" checked>
+          <span>Afficher sur le catalogue public</span>
+        </label>
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" id="cancel-important-info-dialog">Annuler</button>
+          <button class="button primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+    <script type="module" src="./pwa-update.js"></script>
+  </body>
+</html>
