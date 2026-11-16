@@ -19,7 +19,11 @@ configure_package() {
     cp "$app_root/package.json" "$install_dir/package.json"
     chown -R "$app:$app" "$install_dir" "$data_dir" "/var/log/$app"
     chmod 750 "$data_dir"
+<<<<<<<<< Temporary merge branch 1
+    chmod 750 "$data_dir/src" "$install_dir/server"
+=========
     chmod 750 "$install_dir/src" "$install_dir/server"
+>>>>>>>>> Temporary merge branch 2
     if [ -n "${fcm_service_account:-}" ]; then
         if [ ! -f "$fcm_service_account" ]; then
             ynh_die "Le fichier du compte de service FCM est introuvable."
